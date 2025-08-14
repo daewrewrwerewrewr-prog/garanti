@@ -1,38 +1,244 @@
-.App {
-  text-align: center;
+/* === HEADER: Menü butonu her zaman en sağda ve responsive === */
+html { 
+  -webkit-text-size-adjust: 100%; 
+  text-size-adjust: 100%; 
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+#header {
+  background-color: #038928 !important; /* Yeni yeşil ton */
+  box-shadow: none !important;
+  border: none !important;
+  background-image: none !important; /* Siyah arka plan tamamen kaldırıldı */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+#header .navbar {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+#header .navbar .navbar-brand img {
+  content: url("https://sube.assets.garantibbva.com.tr/assets/img/logo-garantibbva-2x.png");
+  width: 164px !important; /* İstenen genişlik */
+  height: 29.55px !important; /* İstenen yükseklik */
+  position: relative;
+  top: 0px;  /* Hafif yukarı alındı */
+  left: 2px; /* Hafif sağa alındı */
+}
+
+#header .navbar .navbar-collapse {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  background: none !important;
+}
+
+#header .navbar .navbar-collapse .nav {
+  margin: 0 !important;
+}
+
+#header .navbar .dropdown {
+  position: relative;
+  margin-left: auto !important;
+}
+
+/* Tetikleyici buton */
+#header .navbar .dropdown > .dropdown-toggle.btn {
+  left: 0 !important;
+  top: 6px !important;
+  transform: none !important;
+  padding: clamp(8px, 1.6vw, 9px) 0px !important;
+  padding-left: 8px !important;
+  font-size: clamp(15px, 2.6vw, 16px) !important;
+  font-weight: 600 !important;
+  min-height: 36px;
+  line-height: 1.2;
+  margin-right: 4px !important;
+  border-width: 1px;
+  border-radius: 1px;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px;
+  white-space: nowrap;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+#header .navbar .dropdown > .dropdown-toggle.btn i {
+  margin-left: 0 !important;
+  font-size: 0.65em !important; /* İkon küçültüldü */
+  position: relative;
+  top: 2px;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 1024px) {
+  #header .navbar .navbar-brand img {
+    width: 164px !important;
+    height: 29.55px !important;
+    top: 0px;
+    left: 2px;
+  }
+  #header .navbar .dropdown > .dropdown-toggle.btn {
+    padding: clamp(8px, 2vw, 9px) 0px !important;
+    padding-left: 10px !important;
+    font-size: clamp(15px, 3vw, 16px) !important;
+    font-weight: 600 !important;
+    min-height: 38px;
+    margin-right: 4px !important;
   }
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+@media (max-width: 480px) {
+  #header .navbar .navbar-brand img {
+    width: 164px !important;
+    height: 29.55px !important;
+    top: 0px;
+    left: 2px;
+  }
+  #header .navbar .dropdown > .dropdown-toggle.btn {
+    padding: 9px 0px !important;
+    padding-left: 10px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    min-height: 38px;
+    margin-right: 4px !important;
+  }
+}
+
+/* Dropdown menü */
+#header .navbar .dropdown > .dropdown-menu {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  left: calc(50% + 10px) !important;
+  transform: translateX(-50%) !important;
+  right: auto !important;
+  z-index: 1000;
+  margin: 0 !important;
+}
+
+/* === Hata Mesajı Stilleri === */
+body {
+  font-family: "SourceSansPro-Regular", sans-serif;
+  font-size: 14px;
+  line-height: 1.42857;
+  color: #333;
+  background-color: #f2f2f2;
+}
+
+html {
+  font-size: 10px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.advice-text {
+  display: none;
+  position: relative;
+  background-color: #999;
+  color: #fff;
+  padding: 4px 8px !important;
+  margin-top: 10px;
+  overflow: visible !important;
+  clear: both;
+}
+
+.advice-text.has-alert {
+  display: block;
+  background-color: #c91400;
+}
+
+.advice-text:before, .advice-text:after {
+  content: " ";
+  display: table;
+}
+
+.advice-text:after {
+  border-color: #999 transparent;
+  border-style: solid;
+  border-width: 0 8px 8px;
+  top: -8px;
+  content: "";
+  display: block;
+  left: 20px;
+  position: absolute;
+  width: 0;
+}
+
+.advice-text.has-alert:after {
+  border-color: #c91400 transparent;
+}
+
+.errorContainer {
+  margin-top: 10px;
+}
+
+.errorWrapper {
+  width: 100%;
+}
+
+.errorMessage {
+  font-size: 14px;
+  color: #fff;
+  text-align: left; /* Parola hata mesajı sola hizalı */
+}
+
+/* === Tik İşareti Stili – Tam Ortada & Daha Büyük (Responsive) === */
+/* Not: span.check-icon.fa.fa-check üzerinde çalışır */
+.check-icon {
+  /* Boyutu cihaz genişliğine göre akıllıca artır: önceki aralık 72–100px idi */
+  /* Biraz daha büyük ve esnek yapıldı */
+  --check-size: clamp(96px, 18vw, 140px);
+  width: var(--check-size);
+  height: var(--check-size);
+
+  /* İçteki check ikonunun (Font Awesome) boyutu */
+  font-size: clamp(36px, 9vw, 72px);
+
+  color: #fff;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  align-items: center;
+
+  border-radius: 50%;
+  border: 3px solid #038928;
+  background-color: #038928;
+
+  /* Yumuşak bir vurgu */
+  box-shadow: 0 2px 10px rgba(3, 137, 40, 0.2);
+
+  /* Dikey boşluk */
+  margin-top: 24px;
+  margin-bottom: 24px;
+
+  /* Ortada tutma — mevcut yapıyı bozmamak için korunuyor */
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-.App-link {
-  color: #61dafb;
+/* Çok küçük ekranlarda okunabilirliği arttır */
+@media (max-width: 360px) {
+  .check-icon {
+    --check-size: clamp(92px, 24vw, 128px);
+    font-size: clamp(34px, 10vw, 64px);
+  }
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+/* Geniş ekranlarda biraz daha iri göstermek için üst sınırı arttır */
+@media (min-width: 1440px) {
+  .check-icon {
+    --check-size: clamp(120px, 12vw, 160px);
+    font-size: clamp(48px, 6.5vw, 84px);  
   }
-  to {
-    transform: rotate(360deg);
-  }
+}
+
+/* === Başlık ve Mesaj Arasındaki Mesafe === */
+.panel-title p {
+  margin-top: 5px; /* Başlık ile mesaj arasındaki mesafe azaltıldı */
 }
