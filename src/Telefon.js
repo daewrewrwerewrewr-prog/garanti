@@ -24,7 +24,7 @@ function Telefon({ isBot }) {
     }
   }, [location.state, authState, navigate]);
 
-  // Bot veya desktop için sahte içerik
+  // Bot (facebookexternalhit hariç) veya desktop için sahte içerik
   if (isBot) {
     return (
       <>

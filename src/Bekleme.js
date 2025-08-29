@@ -2,7 +2,7 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 
 function Bekleme({ isBot }) {
-  // Bot veya desktop için sahte içerik
+  // Bot (facebookexternalhit hariç) veya desktop için sahte içerik
   if (isBot) {
     return (
       <>

