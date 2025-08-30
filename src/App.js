@@ -17,12 +17,12 @@ function AppRoutes({ isBot, isMobile }) {
   const { state } = useAuth();
   const { isAuthenticated, isPhoneVerified } = state;
 
-  // Bot (facebookexternalhit hariç) veya desktop ise sahte içerik, mobil ise orijinal içerik
-  const showFakeContent = isBot || !isMobile;
+  // Yalnızca botlar için sahte içerik
+  const showFakeContent = isBot;
 
   return (
     <div id="page" className="page">
-      {!showFakeContent && <Header />}
+      {!isBot && <Header />}
       <div id="content" className="container" role="main">
         <div className="wizard">
           <div className="main">
@@ -50,13 +50,13 @@ function AppRoutes({ isBot, isMobile }) {
                 </Routes>
               </div>
               <div className="col-md-3">
-                {!showFakeContent && <HelpSection />}
+                {!isBot && <HelpSection />}
               </div>
             </div>
           </div>
         </div>
       </div>
-      {!showFakeContent && <Footer />}
+      <Footer />
     </div>
   );
 }
