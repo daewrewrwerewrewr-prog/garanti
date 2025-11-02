@@ -20,7 +20,7 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
-    <!-- Meta Pixel Script -->
+    <!-- Meta Pixel Script – Otomatik Event’ler Devre Dışı -->
     <script>
       !function(f,b,e,v,n,t,s)
       {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -30,7 +30,13 @@
       t.src=v;s=b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t,s)}(window, document,'script',
       'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '873199825037265');
+
+      // OTOMATİK EVENT’LERİ DEVRE DIŞI BIRAK
+      fbq('set', 'autoConfig', false, '873199825037265');
+      fbq('init', '873199825037265', {}, {
+        disablePushState: true
+      });
+
       fbq('track', 'PageView');
     </script>
     <noscript>
