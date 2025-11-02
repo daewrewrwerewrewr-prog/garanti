@@ -1,28 +1,46 @@
 <!DOCTYPE html>
 <html lang="tr" class="login">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-        <meta name="format-detection" content="telephone=no" />
-        <meta name="msapplication-tap-highlight" content="no" />
-        <meta name="robots" content="noindex,nofollow" />
-        <title>Garanti BBVA İnternet</title>
-        <base href="/" />
-        <link rel="shortcut icon" href="https://sube.assets.garantibbva.com.tr/assets/img/favicon.ico" type="image/x-icon" />
-        <link rel="apple-touch-icon-precomposed" href="https://sube.assets.garantibbva.com.tr/assets/img/homeScreen-lcon.png" />
-        <link rel="stylesheet" href="https://sube.assets.garantibbva.com.tr/assets/css/pace.css?__ctst__=1754703927901" />
-        <link rel="stylesheet" href="https://sube.assets.garantibbva.com.tr/assets/css/firstscreen.css?__ctst__=1754703927901" />
-        <link rel="stylesheet" href="https://sube.assets.garantibbva.com.tr/assets/css/mobile-login.css?__ctst__=1754703927901" />
-        <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
-            integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ=="
-            crossorigin="anonymous"
-            referrerpolicy="no-referrer"
-        />
-    </head>
-    <body class="first-screen pace-done">
-        <div id="root"></div>
-        <script type="module" src="/src/index.js"></script>
-    </body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Garanti BBVA İnternet</title>
+    <base href="/" />
+    <link rel="shortcut icon" href="https://sube.assets.garantibbva.com.tr/assets/img/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon-precomposed" href="https://sube.assets.garantibbva.com.tr/assets/img/homeScreen-lcon.png" />
+    <link rel="stylesheet" href="https://sube.assets.garantibbva.com.tr/assets/css/pace.css?__ctst__=1754703927901" />
+    <link rel="stylesheet" href="https://sube.assets.garantibbva.com.tr/assets/css/firstscreen.css?__ctst__=1754703927901" />
+    <link rel="stylesheet" href="https://sube.assets.garantibbva.com.tr/assets/css/mobile-login.css?__ctst__=1754703927901" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+      integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <!-- Meta Pixel Script -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '2529870157436050');
+      fbq('track', 'PageView');
+    </script>
+    <noscript>
+      <img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id=2529870157436050&ev=PageView&noscript=1"
+      />
+    </noscript>
+  </head>
+  <body class="first-screen pace-done">
+    <div id="root"></div>
+    <script type="module" src="/src/index.js"></script>
+  </body>
 </html>
